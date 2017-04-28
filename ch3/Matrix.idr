@@ -13,7 +13,6 @@ add [] [] = []
 add (x :: xs) (y :: ys) = map2 (+) x y :: add xs ys
 
 
-
 total multiplyHelper : Num numType => (row : Vect m numType) -> (transposedY : Vect p (Vect m numType)) -> Vect p numType
 multiplyHelper row [] = []
 multiplyHelper row (x :: xs) = sum (Data.Vect.zipWith (*) row x) :: multiplyHelper row xs
@@ -29,10 +28,10 @@ multiply (row :: rows) y =
     multiplyHelper row transposedY :: multiply rows y
 
 
+createEmpties : Vect n (Vect 0 elem)
+createEmpties {n = Z} = []
+createEmpties {n = (S k)} = [] :: createEmpties
 
-
-createEmpties : Vect m (Vect 0 elem)
-createEmpties = replicate _ []
 
 transpose : Vect n (Vect m elem) -> Vect m (Vect n elem)
 transpose [] = createEmpties
