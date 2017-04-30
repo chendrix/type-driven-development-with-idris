@@ -2,7 +2,6 @@ module Main
 
 import Data.Vect
 
-
 data DataStore : Type where
   MkData : (size : Nat) -> (items : Vect size String) -> DataStore
 
@@ -27,6 +26,7 @@ data Command
   = Add String
   | Get Integer
   | Size
+  | Search String
   | Quit
 
 
@@ -39,6 +39,8 @@ parseCommand "get" val =
     True => Just (Get (cast val))
 parseCommand "quit" "" = Just Quit
 parseCommand "size" "" = Just Size
+parseCommand "search" str =
+  Just (Search str)
 parseCommand _ _ = Nothing
 
 
@@ -51,8 +53,8 @@ parse input =
       parseCommand cmd (ltrim args)
 
 
-getEntry : (pos : Integer) -> (store : DataStore) -> (input : String) -> Maybe (String, DataStore)
-getEntry pos store input =
+getEntry : (pos : Integer) -> (store : DataStore) -> Maybe (String, DataStore)
+getEntry pos store =
   let
     store_items = items store
   in
@@ -63,6 +65,20 @@ getEntry pos store input =
       Just id =>
         Just (index id store_items ++ "\n", store)
 
+searchEntry : (substr : String) -> (store : DataStore) -> Maybe (String, DataStore)
+searchEntry substr store =
+  let
+    store_items = items store
+    found = filter (isInfixOf substr) (toList store_items)
+    response =
+      foldr func "" found
+  in
+    Just (response ++ "\n", store)
+
+  where
+    func elem acc = elem ++ ", " ++ acc
+
+
 processInput : DataStore -> String -> Maybe (String, DataStore)
 processInput store input =
   case
@@ -70,8 +86,9 @@ processInput store input =
   of
     Nothing => Just ("Invalid command\n", store)
     Just (Add item) => Just ("ID " ++ show (size store) ++ "\n", addToStore store item)
-    Just (Get pos) => getEntry pos store input
+    Just (Get pos) => getEntry pos store
     Just Size => Just (show (size store) ++ "\n", store)
+    Just (Search substr) => searchEntry substr store
     Just Quit => Nothing
 
 
