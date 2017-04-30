@@ -26,6 +26,7 @@ addToStore (MkData size items) newItem = MkData _ (addToData items)
 data Command
   = Add String
   | Get Integer
+  | Size
   | Quit
 
 
@@ -37,6 +38,7 @@ parseCommand "get" val =
     False => Nothing
     True => Just (Get (cast val))
 parseCommand "quit" "" = Just Quit
+parseCommand "size" "" = Just Size
 parseCommand _ _ = Nothing
 
 
@@ -69,6 +71,7 @@ processInput store input =
     Nothing => Just ("Invalid command\n", store)
     Just (Add item) => Just ("ID " ++ show (size store) ++ "\n", addToStore store item)
     Just (Get pos) => getEntry pos store input
+    Just Size => Just (show (size store) ++ "\n", store)
     Just Quit => Nothing
 
 
