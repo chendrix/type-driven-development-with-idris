@@ -33,3 +33,18 @@ readVect = do
 printVect : Show a => (len ** Vect len a) -> IO ()
 printVect (len ** xs) = do
   putStrLn (show xs ++ " (length " ++ show len ++ ")")
+
+
+zipInputs : IO ()
+zipInputs = do
+  putStrLn "Enter your first vector (blank line to end):"
+  (len1 ** vec1) <- readVect
+  putStrLn "Enter your second vector (blank line to end):"
+  (len2 ** vec2) <- readVect
+  case
+    exactLength len1 vec2
+  of
+    Nothing =>
+      putStrLn "Could not zip the two (not the same length)"
+    Just vec2' =>
+      printLn (Data.Vect.zip vec1 vec2')
