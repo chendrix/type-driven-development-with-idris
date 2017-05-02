@@ -16,20 +16,20 @@ data VectUnknown : Type -> Type where
   MkVect : (len : Nat) -> Vect len a -> VectUnknown a
 
 
-readVect : IO (VectUnknown String)
+readVect : IO (len ** Vect len String)
 readVect = do
   x <- getLine
   if
     x == ""
   then
-    pure (MkVect _ [])
+    pure (_ ** [])
   else
     do
-      MkVect _ xs <- readVect
-      pure (MkVect _ (x :: xs))
+      (_ ** xs) <- readVect
+      pure ( _ ** (x :: xs))
 
 
 
-printVect : Show a => VectUnknown a -> IO ()
-printVect (MkVect len xs) = do
+printVect : Show a => (len ** Vect len a) -> IO ()
+printVect (len ** xs) = do
   putStrLn (show xs ++ " (length " ++ show len ++ ")")
