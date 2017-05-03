@@ -58,12 +58,16 @@ parsePrefix SInt input =
   of
     ("", rest) => Nothing
     (num, rest) => Just (cast num, ltrim rest)
-parsePrefix SChar input =
-  case
-    unpack input
-  of
-    [] => Nothing
-    (x :: rest) => Just (x, ltrim (pack rest))
+parsePrefix SChar input = getQuoted (unpack input)
+  where
+    getQuoted : List Char -> Maybe (Char, String)
+    getQuoted ('\'' :: xs) =
+      case
+        span (/= '\'') xs
+      of
+        ([quoted], '\'' :: rest) => Just (quoted, ltrim (pack rest))
+        _ => Nothing
+    getQuoted _ = Nothing
 parsePrefix (schema1 .+. schema2) input = do
   (l_schema, input') <- parsePrefix schema1 input
   (r_schema, r_rest) <- parsePrefix schema2 input'
@@ -119,9 +123,10 @@ parse schema input =
       parseCommand schema cmd (ltrim args)
 
 
-display : SchemaType schema -> String
+total display : SchemaType schema -> String
 display {schema = SString} item = show item
 display {schema = SInt} item = show item
+display {schema = SChar} item = show item
 display {schema = (x .+. y)} (a, b) = display a ++ ", " ++ display b
 
 
