@@ -7,12 +7,14 @@ infixr 5 .+.
 data Schema
   = SString
   | SInt
+  | SChar
   | (.+.) Schema Schema
 
 
 SchemaType : Schema -> Type
 SchemaType SString = String
 SchemaType SInt = Int
+SchemaType SChar = Char
 SchemaType (x .+. y) = (SchemaType x, SchemaType y)
 
 
@@ -56,6 +58,12 @@ parsePrefix SInt input =
   of
     ("", rest) => Nothing
     (num, rest) => Just (cast num, ltrim rest)
+parsePrefix SChar input =
+  case
+    unpack input
+  of
+    [] => Nothing
+    (x :: rest) => Just (x, ltrim (pack rest))
 parsePrefix (schema1 .+. schema2) input = do
   (l_schema, input') <- parsePrefix schema1 input
   (r_schema, r_rest) <- parsePrefix schema2 input'
@@ -73,18 +81,18 @@ parseBySchema schema input =
 
 
 parseSchema : List String -> Maybe Schema
+parseSchema ["String"] = Just SString
 parseSchema ("String" :: rest) = do
-  case
-    parseSchema rest
-  of
-    Just schema => Just (SString .+. schema)
-    Nothing => Just SString
+  schema <- parseSchema rest
+  pure (SString .+. schema)
+parseSchema ["Int"] = Just SInt
 parseSchema ("Int" :: rest) = do
-  case
-    parseSchema rest
-  of
-    Just schema => Just (SInt .+. schema)
-    Nothing => Just SInt
+  schema <- parseSchema rest
+  pure (SInt .+. schema)
+parseSchema ["Char"] = Just SChar
+parseSchema ("Char" :: rest) = do
+  schema <- parseSchema rest
+  pure (SChar .+. schema)
 parseSchema _ = Nothing
 
 
