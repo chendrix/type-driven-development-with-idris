@@ -37,6 +37,7 @@ data Command : Schema -> Type where
   SetSchema : (newschema : Schema) -> Command schema
   Add : SchemaType schema -> Command schema
   Get : Integer -> Command schema
+  GetAll : Command schema
   Size : Command schema
   Quit : Command schema
 
@@ -105,6 +106,7 @@ parseCommand schema "schema" rest =
   map SetSchema (parseSchema (words rest))
 parseCommand schema "add" str =
   map Add (parseBySchema schema str)
+parseCommand _ "get" "" = Just GetAll
 parseCommand _ "get" val =
   case all isDigit (unpack val) of
     False => Nothing
@@ -143,6 +145,11 @@ getEntry pos store =
         Just (display (index id store_items) ++ "\n", store)
 
 
+showAllEntries : Nat -> (Vect n (SchemaType schema)) -> String
+showAllEntries k [] = ""
+showAllEntries k (x :: xs) =  show k ++ ": " ++ display x ++ "\n" ++ showAllEntries (k + 1) xs
+
+
 setSchema : (schema : Schema) -> DataStore -> Maybe DataStore
 setSchema schema store =
   case
@@ -161,6 +168,7 @@ processInput store input =
     Just (Add item) => Just ("ID " ++ show (size store) ++ "\n", addToStore store item)
     Just (Get pos) => getEntry pos store
     Just Size => Just (show (size store) ++ "\n", store)
+    Just GetAll => Just (showAllEntries 0 (items store), store)
     Just (SetSchema schema') =>
       case
         setSchema schema' store
